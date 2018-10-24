@@ -6,7 +6,7 @@
 \usage{
 bw.dens.binned(n, y, w, ni, gboot, pilot.type = 3, hn = 100,
   plugin.type = "N", confband = FALSE, alpha = 0.05, B = 1000,
-  plot = TRUE, print = TRUE, model, pars = new.env())
+  plot = TRUE, print = TRUE, model, parallel = FALSE, pars = new.env())
 }
 \arguments{
 \item{n}{Positive integer. Size of the complete sample.}
@@ -35,7 +35,9 @@ bw.dens.binned(n, y, w, ni, gboot, pilot.type = 3, hn = 100,
 
 \item{print}{Logical. If TRUE and confband is TRUE, the percentage of bootstrap resamples already evaluated is printed. Defaults to TRUE.}
 
-\item{model}{Character. Name of the parametric family of distributions to be fitted for the censored sample. Parameters are estimated by maximum likelihood.}
+\item{model}{Character. Name of the parametric family of distributions to be fitted for the grouped sample. Parameters are estimated by maximum likelihood.}
+
+\item{parallel}{Logical. If TRUE, confidence bands are estimated using parallel computing with sockets.}
 
 \item{pars}{Environment. Needed for the well functioning of the script. DO NOT modify this argument.}
 }
@@ -50,7 +52,7 @@ Bootstrap and plug-in bandwidth selectors for kernel density estimation with bin
 \details{
 If \code{pilot.type} = 1, an heuristic rule is used for calculating the pilot bandwidth. It's not recommended when population's density function is suspected to be highly multimodal.
 
-If \code{pilot.type} = 2, the pilot bandwidth is such that the kernel density estimator with bandwidth \code{gboot} approximates the histogram of the censored sample minimizing the residual sum of squares. If \code{pilot.type} = 3, a penalty is imposed on the curvature of the kernel density estimator with bandwidth \code{gboot}. The penalty parameter is selected as to best approximate the curvature of the true density.
+If \code{pilot.type} = 2, the pilot bandwidth is such that the kernel density estimator with bandwidth \code{gboot} approximates the histogram of the grouped sample minimizing the residual sum of squares. If \code{pilot.type} = 3, a penalty is imposed on the curvature of the kernel density estimator with bandwidth \code{gboot}. The penalty parameter is selected as to best approximate the curvature of the true density.
 }
 \examples{
 set.seed(1)

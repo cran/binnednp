@@ -11,7 +11,8 @@
 #' @param type Character. If \code{type} = "N", normality is assumed at the last step when calculating the plug-in bandwidth. If \code{type} = "A", parameter at last step is estimated nonparametrically using \code{gplugin} as bandwidth. Otherwise, the unknown parameter is estimated fitting a normal mixture. Defaults to \code{type} = "N".
 #' @param plot Logical. If TRUE, results are plotted. Defaults to TRUE.
 #' @param print Logical. If TRUE, script current status is printed. Defaults to TRUE.
-#' @param model Character. Name of the parametric family of distributions to be fitted for the censored sample. Parameters are estimated by maximum likelihood.
+#' @param model Character. Name of the parametric family of distributions to be fitted for the grouped sample. Parameters are estimated by maximum likelihood.
+#' @param parallel Logical. If TRUE, confidence bands are estimated using parallel computing with sockets.
 #' @param pars Environment. Needed for the well functioning of the script. DO NOT modify this argument.
 #'
 #' @return A list with components
@@ -37,7 +38,7 @@
 #' @importFrom Rcpp sourceCpp
 #'
 #' @export
-bw.dist.binned <- function(n,y,w,ni,gplugin,type="N",confband=F,B=1000,alpha=0.05,plot=TRUE,print=TRUE,model,pars=new.env()){
+bw.dist.binned <- function(n,y,w,ni,gplugin,type="N",confband=F,B=1000,alpha=0.05,plot=TRUE,print=TRUE,model,parallel=FALSE,pars=new.env()){
 
   main <- !exists("k", where = pars, inherits = FALSE)
 
@@ -190,6 +191,8 @@ bw.dist.binned <- function(n,y,w,ni,gplugin,type="N",confband=F,B=1000,alpha=0.0
 
     Dn <- matrix(0,nrow=length(y),ncol=B)
 
+    if(!parallel){
+
     for(b in 1:B){
       rx <- sort(sample(t,replace=T,size=n,prob=w)+gplugin*stats::rnorm(n))
       wb <- calcw_cpp(rx,y)
@@ -197,6 +200,26 @@ bw.dist.binned <- function(n,y,w,ni,gplugin,type="N",confband=F,B=1000,alpha=0.0
       Fhby <- sapply(y,function(x)sum( wb*stats::pnorm( (x-t)/h_AMISE_boot ) ))
       Dn[,b] <- Fhby
       if(print == TRUE) cat("\rConstructing bootstrap confidence bands. Progress:",floor(100*b/B),"%")
+    }
+
+    } else {
+
+      parfun <- function(b){
+        rx <- sort(sample(t,replace=T,size=n,prob=w)+gplugin*stats::rnorm(n))
+        wb <- calcw_cpp(rx,y)
+        h_AMISE_boot <- bw.dist.binned(n,y,wb,plot=FALSE,print=FALSE,type=type,pars=pars)
+        Fhby <- sapply(y,function(x)sum( wb*stats::pnorm( (x-t)/h_AMISE_boot ) ))
+        return(Fhby)
+      }
+
+      ncores <- parallel::detectCores()
+      cl <- parallel::makeCluster(ncores)
+      parallel::clusterEvalQ(cl, library(binnednp))
+      parallel::clusterExport(cl, 'calcw_cpp')
+      paroutput <- parallel::parSapply(cl, 1:B, parfun)
+      Dn <- paroutput
+      parallel::stopCluster(cl)
+
     }
 
     alfa <- alpha/length(y)

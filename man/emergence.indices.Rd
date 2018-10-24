@@ -6,7 +6,7 @@
 \usage{
 emergence.indices(n, y, w, ni, hseq, hn = 200, nmix = 4, B = 500,
   method = "np", last.iter.np = F, confint = FALSE, B.conf = 1000,
-  alpha = 0.05, print = TRUE, pars = new.env())
+  alpha = 0.05, print = TRUE, parallel = FALSE, pars = new.env())
 }
 \arguments{
 \item{n}{Positive integer. Size of the complete sample.}
@@ -36,6 +36,8 @@ emergence.indices(n, y, w, ni, hseq, hn = 200, nmix = 4, B = 500,
 \item{alpha}{Real number between 0 and 1. Significance level considered for the confidence intervals.}
 
 \item{print}{Logical. If TRUE, status of the script and results are printed. Defaults to TRUE.}
+
+\item{parallel}{Logical. If TRUE, confidence bands are estimated using parallel computing with sockets.}
 
 \item{pars}{Environment. Needed for the well functioning of the script. DO NOT modify this argument.}
 }

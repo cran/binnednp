@@ -14,6 +14,7 @@
 #' @param alpha Real number between 0 and 1. Significance level considered for the confidence intervals.
 #' @param print Logical. If TRUE, status of the script and results are printed. Defaults to TRUE.
 #' @param last.iter.np Logical. If FALSE, normality is assumed at the last step when calculating the plug-in bandwidth. Otherwise, rule-of-thumb selector is used. Defaults to FALSE.
+#' @param parallel Logical. If TRUE, confidence bands are estimated using parallel computing with sockets.
 #' @param pars Environment. Needed for the well functioning of the script. DO NOT modify this argument.
 #'
 #' @return Nonparametric estimates of the indices and (optional) confidence intervals.
@@ -36,7 +37,7 @@
 #' @importFrom Rcpp sourceCpp
 #'
 #' @export
-emergence.indices = function(n, y, w, ni, hseq, hn=200, nmix=4, B=500, method="np", last.iter.np=F, confint=FALSE, B.conf=1000, alpha=0.05, print=TRUE, pars=new.env()) {
+emergence.indices = function(n, y, w, ni, hseq, hn=200, nmix=4, B=500, method="np", last.iter.np=F, confint=FALSE, B.conf=1000, alpha=0.05, print=TRUE, parallel=FALSE, pars=new.env()) {
 
   main <- !exists("k", where = pars, inherits = FALSE)
 
@@ -375,6 +376,7 @@ emergence.indices = function(n, y, w, ni, hseq, hn=200, nmix=4, B=500, method="n
       est1 <- numeric(B.conf)
       est2 <- numeric(B.conf)
 
+      if(!parallel){
 
       for(b in 1:B.conf){
 
@@ -399,6 +401,41 @@ emergence.indices = function(n, y, w, ni, hseq, hn=200, nmix=4, B=500, method="n
 
 
         if(print == TRUE) cat("\rProgress:",floor(100*b/B.conf),"%")
+
+      }
+
+      } else {
+
+        parfun <- function(b){
+          if(method=="np"){
+            res <- sample(t,size=n,replace=TRUE,prob=w) + h_boot * stats::rnorm(n)
+          }
+          else{
+            # ib <- sample(1:nmix,size=n,replace=T,prob=alfamix)
+            # res <- stats::rnorm(n,mumix[ib],sigmix[ib])
+            res <- nor1mix::rnorMix(n,mixfit)
+          }
+
+
+          wb <- calcw_cpp(res,y)
+
+          obj <- emergence.indices(n,y,wb,B=100,hseq=hseq.res,confint=FALSE,pars=pars)
+
+          return(c(log(obj$J1/J1_np)/obj$sd1,log(obj$J2/J2_np)/obj$sd2))
+
+        }
+
+        ncores <- parallel::detectCores()
+        cl <- parallel::makeCluster(ncores)
+        parallel::clusterEvalQ(cl, {
+          library(binnednp)
+          library(nor1mix)
+          })
+        parallel::clusterExport(cl, 'calcw_cpp')
+        paroutput <- parallel::parSapply(cl, 1:B.conf, parfun)
+        est1 <- paroutput[1,]
+        est2 <- paroutput[2,]
+        parallel::stopCluster(cl)
 
       }
 

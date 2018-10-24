@@ -13,13 +13,14 @@
 #' @param B Positive integer. Number of bootstrap resamples used when constructing confidence bands. Defaults to 1000.
 #' @param plot Logical. If TRUE, kernel density estimators are plotted along with (optional) bootstrap confidence bands. Defaults to TRUE.
 #' @param print Logical. If TRUE and confband is TRUE, the percentage of bootstrap resamples already evaluated is printed. Defaults to TRUE.
-#' @param model Character. Name of the parametric family of distributions to be fitted for the censored sample. Parameters are estimated by maximum likelihood.
+#' @param model Character. Name of the parametric family of distributions to be fitted for the grouped sample. Parameters are estimated by maximum likelihood.
+#' @param parallel Logical. If TRUE, confidence bands are estimated using parallel computing with sockets.
 #' @param pars Environment. Needed for the well functioning of the script. DO NOT modify this argument.
 #'
 #' @details
 #' If \code{pilot.type} = 1, an heuristic rule is used for calculating the pilot bandwidth. It's not recommended when population's density function is suspected to be highly multimodal.
 #'
-#' If \code{pilot.type} = 2, the pilot bandwidth is such that the kernel density estimator with bandwidth \code{gboot} approximates the histogram of the censored sample minimizing the residual sum of squares. If \code{pilot.type} = 3, a penalty is imposed on the curvature of the kernel density estimator with bandwidth \code{gboot}. The penalty parameter is selected as to best approximate the curvature of the true density.
+#' If \code{pilot.type} = 2, the pilot bandwidth is such that the kernel density estimator with bandwidth \code{gboot} approximates the histogram of the grouped sample minimizing the residual sum of squares. If \code{pilot.type} = 3, a penalty is imposed on the curvature of the kernel density estimator with bandwidth \code{gboot}. The penalty parameter is selected as to best approximate the curvature of the true density.
 #'
 #' @return A list with components
 #' \item{h_boot}{Bootstrap bandwidth selector.}
@@ -45,7 +46,7 @@
 #' @importFrom Rcpp sourceCpp
 #'
 #' @export
-bw.dens.binned <- function(n,y,w,ni,gboot,pilot.type=3,hn=100,plugin.type="N",confband=FALSE,alpha=0.05,B=1000,plot=TRUE,print=TRUE,model,pars=new.env()){
+bw.dens.binned <- function(n,y,w,ni,gboot,pilot.type=3,hn=100,plugin.type="N",confband=FALSE,alpha=0.05,B=1000,plot=TRUE,print=TRUE,model,parallel=FALSE,pars=new.env()){
 
 
   main <- !exists("k", where = pars, inherits = FALSE)
@@ -319,6 +320,8 @@ bw.dens.binned <- function(n,y,w,ni,gboot,pilot.type=3,hn=100,plugin.type="N",co
     Dnboot <- matrix(0,nrow=k+1,ncol=B)
     Dnplugin <- matrix(0,nrow=k+1,ncol=B)
 
+    if(!parallel){
+
     for(b in 1:B){
       rx <- sort(sample(t,replace=TRUE,size=n,prob=w)+gboot*stats::rnorm(n))
       wb <- calcw_cpp(rx,y)
@@ -328,6 +331,32 @@ bw.dens.binned <- function(n,y,w,ni,gboot,pilot.type=3,hn=100,plugin.type="N",co
       Dnboot[,b] <- sapply(y,function(x)sum( wb*stats::dnorm( (x-t)/h_boot.boot ) )/h_boot.boot)
       Dnplugin[,b] <- sapply(y,function(x)sum( wb*stats::dnorm( (x-t)/h_plugin.boot ) )/h_plugin.boot)
       if(print == TRUE) cat("\rConstructing confidence bands... Progress:",floor(100*b/B),"%")
+    }
+
+    } else {
+
+      parfun <- function(b){
+        rx <- sort(sample(t,replace=TRUE,size=n,prob=w)+gboot*stats::rnorm(n))
+        wb <- calcw_cpp(rx,y)
+        obj <- bw.dens.binned(n,y,wb,hn=10,plot=FALSE,pilot.type=pilot.type,plugin.type=plugin.type,pars=pars)
+        h_boot.boot <- obj$h_boot
+        h_plugin.boot <- obj$h_plugin
+        Dnbootcolb <- sapply(y,function(x)sum( wb*stats::dnorm( (x-t)/h_boot.boot ) )/h_boot.boot)
+        Dnplugincolb <- sapply(y,function(x)sum( wb*stats::dnorm( (x-t)/h_plugin.boot ) )/h_plugin.boot)
+        return(c(boot=Dnbootcolb,pi=Dnplugincolb))
+        }
+
+      ncores <- parallel::detectCores()
+      cl <- parallel::makeCluster(ncores)
+      parallel::clusterEvalQ(cl, library(binnednp))
+      parallel::clusterExport(cl, 'calcw_cpp')
+      paroutput <- parallel::parSapply(cl, 1:B, parfun)
+      Dn <- paroutput
+      idx <- seq(1,2*(k+1),by=2)
+      Dnboot <- Dn[1:(k+1),]
+      Dnplugin <- Dn[(k+2):(2*(k+1)),]
+      parallel::stopCluster(cl)
+
     }
 
     alfa <- alpha/(k+1)

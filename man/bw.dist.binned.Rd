@@ -5,7 +5,8 @@
 \title{Plug-in bandwidth selector for kernel distribution estimation and binned data.}
 \usage{
 bw.dist.binned(n, y, w, ni, gplugin, type = "N", confband = F, B = 1000,
-  alpha = 0.05, plot = TRUE, print = TRUE, model, pars = new.env())
+  alpha = 0.05, plot = TRUE, print = TRUE, model, parallel = FALSE,
+  pars = new.env())
 }
 \arguments{
 \item{n}{Positive integer. Size of the complete sample.}
@@ -30,7 +31,9 @@ bw.dist.binned(n, y, w, ni, gplugin, type = "N", confband = F, B = 1000,
 
 \item{print}{Logical. If TRUE, script current status is printed. Defaults to TRUE.}
 
-\item{model}{Character. Name of the parametric family of distributions to be fitted for the censored sample. Parameters are estimated by maximum likelihood.}
+\item{model}{Character. Name of the parametric family of distributions to be fitted for the grouped sample. Parameters are estimated by maximum likelihood.}
+
+\item{parallel}{Logical. If TRUE, confidence bands are estimated using parallel computing with sockets.}
 
 \item{pars}{Environment. Needed for the well functioning of the script. DO NOT modify this argument.}
 }

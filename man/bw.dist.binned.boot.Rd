@@ -6,7 +6,7 @@
 \usage{
 bw.dist.binned.boot(n, y, w, ni, g, pilot.type = 2, nit = 10,
   confband = FALSE, B = 1000, alpha = 0.05, print = TRUE, plot = TRUE,
-  pars = new.env())
+  parallel = FALSE, pars = new.env())
 }
 \arguments{
 \item{n}{Positive integer. Size of the complete sample.}
@@ -33,6 +33,8 @@ bw.dist.binned.boot(n, y, w, ni, g, pilot.type = 2, nit = 10,
 
 \item{plot}{Logical. If TRUE, results are plotted. Defaults to FALSE.}
 
+\item{parallel}{Logical. If TRUE, confidence bands are estimated using parallel computing with sockets.}
+
 \item{pars}{Environment. Needed for the well functioning of the script. DO NOT modify this argument.}
 }
 \value{
@@ -47,7 +49,7 @@ Bootstrap bandwidth selector for kernel distribution estimation and binned data.
 \details{
 If \code{pilot.type} = 1, plug-in bandwidth for the distribution is considered as pilot bandwidth for the bootstrap selector.
 
-If \code{pilot.type} = 2, the pilot bandwidth is such that the kernel distribution estimator with bandwidth \code{g} approximates the empirical distribution of the censored sample minimizing the residual sum of squares. Also, a penalty is imposed on the global slope of the kernel density estimator with bandwidth \code{g}. The penalty parameter is selected as to best approximate the global slope of the true density.
+If \code{pilot.type} = 2, the pilot bandwidth is such that the kernel distribution estimator with bandwidth \code{g} approximates the empirical distribution of the grouped sample minimizing the residual sum of squares. Also, a penalty is imposed on the global slope of the kernel density estimator with bandwidth \code{g}. The penalty parameter is selected as to best approximate the global slope of the true density.
 }
 \examples{
 set.seed(1)
