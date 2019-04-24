@@ -4,9 +4,9 @@
 \alias{bw.dist.binned}
 \title{Plug-in bandwidth selector for kernel distribution estimation and binned data.}
 \usage{
-bw.dist.binned(n, y, w, ni, gplugin, type = "N", confband = F, B = 1000,
-  alpha = 0.05, plot = TRUE, print = TRUE, model, parallel = FALSE,
-  pars = new.env())
+bw.dist.binned(n, y, w, ni, gplugin, type = "N", confband = F,
+  B = 1000, alpha = 0.05, plot = TRUE, print = TRUE, model,
+  parallel = FALSE, pars = new.env())
 }
 \arguments{
 \item{n}{Positive integer. Size of the complete sample.}

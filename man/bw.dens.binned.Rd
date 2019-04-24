@@ -6,7 +6,8 @@
 \usage{
 bw.dens.binned(n, y, w, ni, gboot, pilot.type = 3, hn = 100,
   plugin.type = "N", confband = FALSE, alpha = 0.05, B = 1000,
-  plot = TRUE, print = TRUE, model, parallel = FALSE, pars = new.env())
+  plot = TRUE, print = TRUE, model, parallel = FALSE,
+  pars = new.env())
 }
 \arguments{
 \item{n}{Positive integer. Size of the complete sample.}

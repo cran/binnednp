@@ -5,8 +5,8 @@
 \title{Bootstrap bandwidth selector for kernel distribution estimation and binned data.}
 \usage{
 bw.dist.binned.boot(n, y, w, ni, g, pilot.type = 2, nit = 10,
-  confband = FALSE, B = 1000, alpha = 0.05, print = TRUE, plot = TRUE,
-  parallel = FALSE, pars = new.env())
+  confband = FALSE, B = 1000, alpha = 0.05, print = TRUE,
+  plot = TRUE, parallel = FALSE, pars = new.env())
 }
 \arguments{
 \item{n}{Positive integer. Size of the complete sample.}
