@@ -2,9 +2,9 @@
 % Please edit documentation in R/anv.binned.R
 \name{anv.binned}
 \alias{anv.binned}
-\title{ANOVA in kernel distribution estimation with binned data.}
+\title{ANOVA in kernel distribution estimation with binned data using bootstrap.}
 \usage{
-anv.binned(n, y, trt.w, abs.values = FALSE, alpha = 0.05, B = 500)
+anv.binned(n, y, trt.w, abs.values = FALSE, B = 500)
 }
 \arguments{
 \item{n}{Vector of positive integers. Sizes of the complete samples corresponding to each treatment.}
@@ -15,18 +15,16 @@ anv.binned(n, y, trt.w, abs.values = FALSE, alpha = 0.05, B = 500)
 
 \item{abs.values}{Logical. Indicates if the values of trt.w are given in absolute (TRUE) or relative (FALSE) format.}
 
-\item{alpha}{Real number between 0 and 1. Significance level of the test.}
-
 \item{B}{Positive integer. Number of bootstrap replicates used to compute the confidence bands.}
 }
 \value{
-TRUE if the null hypothesis is accepted and FALSE otherwise.
+p-value of the test.
 }
 \description{
-ANOVA in kernel distribution estimation with binned data.
+ANOVA in kernel distribution estimation with binned data using bootstrap.
 }
 \details{
-Constructs bootstrap confidence bands for each treatment and checks whether they overlap or not.
+ANOVA for interval-grouped data.
 }
 \references{
 \insertRef{TesisMiguel2015}{binnednp}
